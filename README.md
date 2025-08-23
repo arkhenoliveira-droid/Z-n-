@@ -9,7 +9,6 @@
 ### 1. **Z-n-** - Main Repository
 - **Description**: Human-scale coherence experiment
 - **Core Concept**: `Time + Light + Sound → Coherence, and Coherence = Empathy = Value`
-- **Status**: 3 stars on GitHub, active public project
 
 ### 2. **Harmonicis-** - Symbiosis Model
 - **Description**: Symbolic programming system using Z(n)
