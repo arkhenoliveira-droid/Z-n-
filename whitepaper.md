@@ -175,7 +175,7 @@ Background: Blockchain Research, Consensus Mechanisms
 
 **📄 Whitepaper:** [TimeChain Technical Paper](https://github.com/Aurumgrid/Z-n-/timechain.md)  
 **💬 Telegram:** Coming Soon  
-**🐦 Twitter:** @TimeChainProtocol  
+**🐦 Twitter:** @AurumGrid  
 **📧 Contact:** aurumgrid@proton.me  
 
 ---
@@ -229,11 +229,3 @@ This is experimental technology under active development. Do your own research (
 ---
 
 **🔥 JOIN THE REVOLUTION - THE FUTURE RUNS ON TIMECHAIN TIME 🔥**
-
-*Drop your questions below and let's discuss the future of decentralized time! ⬇️*
-
----
-
-**Latest Update:** August 23, 2025  
-**Forum Rank:** Newbie (for now! 😄)  
-**Merit:** Please merit if you found this interesting! 🙏
