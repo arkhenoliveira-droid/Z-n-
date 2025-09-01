@@ -190,19 +190,6 @@ Background: Blockchain Research, Consensus Mechanisms
 
 ---
 
-## 💰 INVESTMENT OPPORTUNITY
-
-**Seed Round:** Opening Q1 2025  
-**Target Raise:** $2M  
-**Use of Funds:** Development (60%), Security Audits (25%), Marketing (15%)  
-
-**Early Supporters:**
-- Access to testnet mining
-- Advisory tokens
-- Development partnership opportunities
-
----
-
 ## ❓ FAQ
 
 **Q: How is this different from other consensus mechanisms?**  
