@@ -1,5 +1,3 @@
-# [ANN] TimeChain - Decentralized Time Consensus Protocol | Proof-of-Time | VDF Technology
-
 **🚀 INTRODUCING TIMECHAIN - THE FUTURE OF DECENTRALIZED TIME 🚀**
 
 ---
@@ -137,22 +135,22 @@ Smart Contract VM: EVM-compatible + temporal extensions
 
 ## 🗺️ ROADMAP
 
-**Q4 2024**
+**Q4 2025**
 - ✅ Whitepaper publication
 - ✅ Core protocol design
 - ⏳ VDF implementation
 
-**Q1 2025**
+**Q1 2026**
 - 🔄 Testnet launch
 - 🔄 Developer toolkit
 - 🔄 Community building
 
-**Q2 2025**
+**Q2 2026**
 - 📝 Security audits
 - 🚀 Mainnet preparation
 - 🤝 Partnership announcements
 
-**Q3 2025**
+**Q3 2026**
 - 🎯 Mainnet launch
 - 💱 Exchange listings
 - 📱 Mobile wallet release
@@ -205,7 +203,7 @@ A: VDF properties ensure the longest chain always represents the most time passe
 A: Current implementation uses RSA, but we're developing post-quantum VDF alternatives.
 
 **Q: When mainnet?**  
-A: Q3 2025 - following extensive testing and security audits.
+A: Q4 2025 - following extensive testing and security audits.
 
 ---
 
