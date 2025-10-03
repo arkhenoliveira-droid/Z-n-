@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+# Check for --model argument
+if [ "$1" != "--model" ]; then
+    echo "Usage: $0 --model <model_name>"
+    exit 1
+fi
+
+MODEL_NAME=$2
+
+echo "[PARALLAX] ==> Attempting to serve model '$MODEL_NAME'..."
+echo "[PARALLAX] ==> Detecting best device..."
+echo "[PARALLAX] ==> Found compatible device: GPU (simulated)."
+echo "[PARALLAX] ==> Loading model weights into memory..."
+echo "[PARALLAX] ==> Model '$MODEL_NAME' is now being served."
+echo "[PARALLAX] ==> Listening on Lattica endpoint: /${MODEL_NAME}/v1/chat"

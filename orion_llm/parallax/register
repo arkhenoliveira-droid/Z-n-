@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+
+# Check for --manifest argument, which we expect in position 1
+if [ "$1" != "--manifest" ]; then
+    echo "Usage: $0 --manifest <path_to_manifest.json>"
+    exit 1
+fi
+
+MANIFEST_FILE=$2
+
+if [ ! -f "$MANIFEST_FILE" ]; then
+    echo "[PARALLAX] Error: Manifest file not found at '$MANIFEST_FILE'"
+    exit 1
+fi
+
+# Extract model name and checksum from JSON (using simple tools)
+MODEL_NAME=$(grep -o '"name": "[^"]*' "$MANIFEST_FILE" | cut -d'"' -f4)
+CHECKSUM=$(grep -o '"checksum": "[^"]*' "$MANIFEST_FILE" | cut -d'"' -f4)
+
+echo "[PARALLAX] ==> Registering model '$MODEL_NAME' with checksum $CHECKSUM on Lattica DHT..."
+echo "[PARALLAX] ==> Registration successful."
