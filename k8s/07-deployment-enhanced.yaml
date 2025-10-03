@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wasm-executor
+  namespace: wasm-executor
+  labels:
+    app: wasm-executor
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9113" # The port of the metrics sidecar
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wasm-executor
+  template:
+    metadata:
+      labels:
+        app: wasm-executor
+      annotations: # Pod-level annotations for Prometheus scraping
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9113"
+    spec:
+      containers:
+      - name: wasm-executor
+        image: your-repo/wasm-executor:latest # Replace with your actual image
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: tls-certs-volume
+          mountPath: "/etc/tls" # Mounts the certs into the container
+          readOnly: true
+      - name: metrics-exporter
+        # This is a common pattern using a statsd exporter.
+        # Your app sends metrics via UDP to this sidecar.
+        image: prom/statsd-exporter:v0.22.0
+        args:
+        - "--statsd.listen-udp=:8125"
+        - "--web.listen-address=:9113"
+        ports:
+        - containerPort: 9113
+          name: metrics
+        - containerPort: 8125
+          name: statsd-udp
+          protocol: UDP
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "100m"
+            memory: "128Mi"
+      volumes:
+      - name: tls-certs-volume
+        configMap:
+          name: wasm-executor-tls-certs

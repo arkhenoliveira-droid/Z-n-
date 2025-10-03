@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wasm-executor
+  namespace: wasm-executor
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx # Or your preferred ingress controller
+  tls:
+  - hosts:
+    - wasm-executor.example.com
+    secretName: wasm-executor-tls
+  rules:
+  - host: wasm-executor.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: wasm-executor
+            port:
+              number: 80
