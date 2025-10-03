@@ -1,0 +1,534 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Plus, Settings, Copy, Trash2, Edit, Activity, Send, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
+import { toast } from 'sonner'
+
+interface Webhook {
+  id: string
+  name: string
+  description?: string
+  endpoint: string
+  secretKey: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  author: {
+    id: string
+    name?: string
+    email: string
+  }
+  channels: {
+    id: string
+    isActive: boolean
+    channel: {
+      id: string
+      name: string
+      type: 'TELEGRAM' | 'DISCORD' | 'SLACK' | 'EMAIL' | 'TWITTER'
+    }
+  }[]
+  _count: {
+    alerts: number
+  }
+}
+
+interface AlertChannel {
+  id: string
+  name: string
+  type: 'TELEGRAM' | 'DISCORD' | 'SLACK' | 'EMAIL' | 'TWITTER'
+  config: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  author: {
+    id: string
+    name?: string
+    email: string
+  }
+  _count: {
+    deliveries: number
+  }
+}
+
+const channelTypeIcons = {
+  TELEGRAM: '📱',
+  DISCORD: '💬',
+  SLACK: '🔔',
+  EMAIL: '📧',
+  TWITTER: '🐦'
+}
+
+const channelTypeColors = {
+  TELEGRAM: 'bg-blue-100 text-blue-800',
+  DISCORD: 'bg-indigo-100 text-indigo-800',
+  SLACK: 'bg-purple-100 text-purple-800',
+  EMAIL: 'bg-green-100 text-green-800',
+  TWITTER: 'bg-sky-100 text-sky-800'
+}
+
+export default function Home() {
+  const [webhooks, setWebhooks] = useState<Webhook[]>([])
+  const [channels, setChannels] = useState<AlertChannel[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isCreateWebhookDialogOpen, setIsCreateWebhookDialogOpen] = useState(false)
+  const [isCreateChannelDialogOpen, setIsCreateChannelDialogOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('webhooks')
+
+  // Form states
+  const [webhookForm, setWebhookForm] = useState({
+    name: '',
+    description: '',
+    authorId: 'default-user'
+  })
+
+  const [channelForm, setChannelForm] = useState({
+    name: '',
+    type: 'TELEGRAM' as 'TELEGRAM' | 'DISCORD' | 'SLACK' | 'EMAIL' | 'TWITTER',
+    config: '',
+    authorId: 'default-user'
+  })
+
+  useEffect(() => {
+    fetchData()
+  }, [activeTab])
+
+  const fetchData = async () => {
+    try {
+      if (activeTab === 'webhooks') {
+        const response = await fetch('/api/webhooks')
+        if (response.ok) {
+          const data = await response.json()
+          setWebhooks(data)
+        }
+      } else {
+        const response = await fetch('/api/channels')
+        if (response.ok) {
+          const data = await response.json()
+          setChannels(data)
+        }
+      }
+    } catch (error) {
+      toast.error('Error fetching data')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCreateWebhook = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    try {
+      const response = await fetch('/api/webhooks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookForm),
+      })
+
+      if (response.ok) {
+        toast.success('Webhook created successfully')
+        fetchData()
+        setWebhookForm({ name: '', description: '', authorId: 'default-user' })
+        setIsCreateWebhookDialogOpen(false)
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to create webhook')
+      }
+    } catch (error) {
+      toast.error('Error creating webhook')
+    }
+  }
+
+  const handleCreateChannel = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    try {
+      const response = await fetch('/api/channels', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(channelForm),
+      })
+
+      if (response.ok) {
+        toast.success('Channel created successfully')
+        fetchData()
+        setChannelForm({ name: '', type: 'TELEGRAM', config: '', authorId: 'default-user' })
+        setIsCreateChannelDialogOpen(false)
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to create channel')
+      }
+    } catch (error) {
+      toast.error('Error creating channel')
+    }
+  }
+
+  const handleCopyEndpoint = (endpoint: string) => {
+    const fullUrl = `${window.location.origin}${endpoint}`
+    navigator.clipboard.writeText(fullUrl)
+    toast.success('Webhook URL copied to clipboard')
+  }
+
+  const handleCopySecretKey = (secretKey: string) => {
+    navigator.clipboard.writeText(secretKey)
+    toast.success('Secret key copied to clipboard')
+  }
+
+  const getChannelConfigTemplate = (type: string) => {
+    switch (type) {
+      case 'TELEGRAM':
+        return JSON.stringify({
+          botToken: "YOUR_BOT_TOKEN",
+          chatId: "YOUR_CHAT_ID"
+        }, null, 2)
+      case 'DISCORD':
+        return JSON.stringify({
+          webhookUrl: "YOUR_DISCORD_WEBHOOK_URL"
+        }, null, 2)
+      case 'SLACK':
+        return JSON.stringify({
+          webhookUrl: "YOUR_SLACK_WEBHOOK_URL"
+        }, null, 2)
+      case 'EMAIL':
+        return JSON.stringify({
+          smtp: {
+            host: "smtp.gmail.com",
+            port: 587,
+            username: "your_email@gmail.com",
+            password: "your_password"
+          },
+          to: "recipient@example.com",
+          from: "your_email@gmail.com"
+        }, null, 2)
+      case 'TWITTER':
+        return JSON.stringify({
+          apiKey: "YOUR_API_KEY",
+          apiSecret: "YOUR_API_SECRET",
+          accessToken: "YOUR_ACCESS_TOKEN",
+          accessTokenSecret: "YOUR_ACCESS_TOKEN_SECRET"
+        }, null, 2)
+      default:
+        return '{}'
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto p-6 max-w-7xl">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">TradingView Webhook Manager</h1>
+          <p className="text-muted-foreground">
+            Manage TradingView alerts and notification channels
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {activeTab === 'webhooks' ? (
+            <Dialog open={isCreateWebhookDialogOpen} onOpenChange={setIsCreateWebhookDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Webhook
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Webhook</DialogTitle>
+                  <DialogDescription>
+                    Create a new webhook endpoint to receive TradingView alerts
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleCreateWebhook}>
+                  <div className="grid gap-4 py-4">
+                    <div>
+                      <Label htmlFor="webhook-name">Name</Label>
+                      <Input
+                        id="webhook-name"
+                        value={webhookForm.name}
+                        onChange={(e) => setWebhookForm({ ...webhookForm, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="webhook-description">Description</Label>
+                      <Textarea
+                        id="webhook-description"
+                        value={webhookForm.description}
+                        onChange={(e) => setWebhookForm({ ...webhookForm, description: e.target.value })}
+                        placeholder="Optional description"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsCreateWebhookDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">Create Webhook</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Dialog open={isCreateChannelDialogOpen} onOpenChange={setIsCreateChannelDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Channel
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create New Channel</DialogTitle>
+                  <DialogDescription>
+                    Add a new notification channel for alerts
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleCreateChannel}>
+                  <div className="grid gap-4 py-4">
+                    <div>
+                      <Label htmlFor="channel-name">Name</Label>
+                      <Input
+                        id="channel-name"
+                        value={channelForm.name}
+                        onChange={(e) => setChannelForm({ ...channelForm, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="channel-type">Type</Label>
+                      <Select
+                        value={channelForm.type}
+                        onValueChange={(value: any) => {
+                          setChannelForm({
+                            ...channelForm,
+                            type: value,
+                            config: getChannelConfigTemplate(value)
+                          })
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TELEGRAM">📱 Telegram</SelectItem>
+                          <SelectItem value="DISCORD">💬 Discord</SelectItem>
+                          <SelectItem value="SLACK">🔔 Slack</SelectItem>
+                          <SelectItem value="EMAIL">📧 Email</SelectItem>
+                          <SelectItem value="TWITTER">🐦 Twitter</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="channel-config">Configuration</Label>
+                      <Textarea
+                        id="channel-config"
+                        value={channelForm.config}
+                        onChange={(e) => setChannelForm({ ...channelForm, config: e.target.value })}
+                        placeholder={getChannelConfigTemplate(channelForm.type)}
+                        rows={8}
+                        required
+                      />
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Enter configuration as JSON
+                      </p>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsCreateChannelDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">Create Channel</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          <TabsTrigger value="channels">Channels</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="webhooks" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {webhooks.map((webhook) => (
+              <Card key={webhook.id} className="h-fit">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        {webhook.name}
+                        <Badge variant={webhook.isActive ? "default" : "secondary"}>
+                          {webhook.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </CardTitle>
+                      {webhook.description && (
+                        <CardDescription className="mt-1">
+                          {webhook.description}
+                        </CardDescription>
+                      )}
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCopyEndpoint(webhook.endpoint)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCopySecretKey(webhook.secretKey)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium mb-1">Endpoint</p>
+                      <code className="text-xs bg-muted p-2 rounded block overflow-x-auto">
+                        {webhook.endpoint}
+                      </code>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">Secret Key</p>
+                      <code className="text-xs bg-muted p-2 rounded block overflow-x-auto">
+                        {webhook.secretKey}
+                      </code>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">Channels</p>
+                      <div className="flex flex-wrap gap-1">
+                        {webhook.channels.length > 0 ? (
+                          webhook.channels.map((wc) => (
+                            <Badge
+                              key={wc.id}
+                              variant="outline"
+                              className={`text-xs ${channelTypeColors[wc.channel.type]}`}
+                            >
+                              {channelTypeIcons[wc.channel.type]} {wc.channel.name}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No channels configured</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {webhook._count.alerts} alerts received
+                      </span>
+                      <span className="text-muted-foreground">
+                        {new Date(webhook.updatedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {webhooks.length === 0 && (
+            <div className="text-center py-12">
+              <Activity className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No webhooks found</h3>
+              <p className="text-muted-foreground mb-4">
+                Get started by creating your first webhook endpoint
+              </p>
+              <Button onClick={() => setIsCreateWebhookDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Webhook
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="channels" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {channels.map((channel) => (
+              <Card key={channel.id} className="h-fit">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        {channelTypeIcons[channel.type]} {channel.name}
+                        <Badge variant={channel.isActive ? "default" : "secondary"}>
+                          {channel.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </CardTitle>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium mb-1">Type</p>
+                      <Badge className={channelTypeColors[channel.type]}>
+                        {channel.type}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-1">Configuration</p>
+                      <pre className="text-xs bg-muted p-2 rounded overflow-x-auto max-h-24">
+                        {channel.config.substring(0, 200)}{channel.config.length > 200 ? '...' : ''}
+                      </pre>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {channel._count.deliveries} deliveries
+                      </span>
+                      <span className="text-muted-foreground">
+                        {new Date(channel.updatedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {channels.length === 0 && (
+            <div className="text-center py-12">
+              <Send className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No channels found</h3>
+              <p className="text-muted-foreground mb-4">
+                Get started by creating your first notification channel
+              </p>
+              <Button onClick={() => setIsCreateChannelDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Channel
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
