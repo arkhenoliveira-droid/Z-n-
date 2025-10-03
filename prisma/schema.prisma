@@ -1,0 +1,344 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  constants     GlobalConstant[]
+  webhooks      Webhook[]
+  alertChannels AlertChannel[]
+  alerts        Alert[]
+
+  @@index([createdAt])
+}
+
+model GlobalConstant {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  format      ConstantFormat @default(KEY_VALUE)
+  content     String   // JSON string for both key-value and JSON formats
+  category    String?
+  environment String   @default("default")
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([name])
+  @@index([category])
+  @@index([environment])
+  @@index([isPublic])
+  @@index([createdAt])
+  @@index([authorId, createdAt])
+  @@index([environment, category])
+  @@index([isPublic, createdAt])
+}
+
+model Webhook {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  endpoint    String   @unique
+  secretKey   String   @unique
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  alerts      Alert[]
+  channels    WebhookAlertChannel[]
+
+  @@index([name])
+  @@index([isActive])
+  @@index([createdAt])
+  @@index([authorId])
+  @@index([authorId, isActive])
+  @@index([isActive, createdAt])
+}
+
+model AlertChannel {
+  id          String   @id @default(cuid())
+  name        String
+  type        ChannelType
+  config      String   // JSON configuration for the channel
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  webhooks     WebhookAlertChannel[]
+  deliveries  AlertDelivery[]
+
+  @@index([name])
+  @@index([type])
+  @@index([isActive])
+  @@index([createdAt])
+  @@index([authorId])
+  @@index([authorId, isActive])
+  @@index([type, isActive])
+  @@index([isActive, createdAt])
+}
+
+model WebhookAlertChannel {
+  id           String   @id @default(cuid())
+  webhookId    String
+  channelId    String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  webhook      Webhook      @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  channel      AlertChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([webhookId, channelId])
+}
+
+model Alert {
+  id          String   @id @default(cuid())
+  webhookId   String
+  message     String
+  rawData     String   // Original JSON data from TradingView
+  status      AlertStatus @default(RECEIVED)
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  webhook     Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+
+  deliveries  AlertDelivery[]
+
+  @@index([webhookId])
+  @@index([status])
+  @@index([sentAt])
+  @@index([createdAt])
+  @@index([authorId])
+  @@index([webhookId, status])
+  @@index([status, createdAt])
+  @@index([authorId, createdAt])
+  @@index([createdAt, status])
+}
+
+model AlertDelivery {
+  id          String   @id @default(cuid())
+  alertId     String
+  channelId   String
+  status      DeliveryStatus @default(PENDING)
+  response    String?
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  alert       Alert       @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  channel     AlertChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([alertId, channelId])
+  @@index([alertId])
+  @@index([channelId])
+  @@index([status])
+  @@index([sentAt])
+  @@index([createdAt])
+  @@index([channelId, status])
+  @@index([status, createdAt])
+  @@index([sentAt, status])
+}
+
+model BackgroundJob {
+  id            String   @id @default(cuid())
+  type          String
+  payload       String   // JSON payload
+  status        JobStatus @default(PENDING)
+  priority      JobPriority @default(MEDIUM)
+  attempts      Int      @default(0)
+  maxAttempts   Int      @default(3)
+  scheduledAt   DateTime
+  startedAt     DateTime?
+  completedAt   DateTime?
+  errorMessage  String?
+  result        String?  // JSON result
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([type])
+  @@index([status])
+  @@index([priority])
+  @@index([attempts])
+  @@index([scheduledAt])
+  @@index([startedAt])
+  @@index([completedAt])
+  @@index([createdAt])
+  @@index([status, priority])
+  @@index([status, scheduledAt])
+  @@index([type, status])
+  @@index([attempts, status])
+  @@index([scheduledAt, status])
+}
+
+model AnalyticsReport {
+  id        String   @id @default(cuid())
+  period    String   // Unique identifier for the time period
+  data      String   // JSON report data
+  createdAt DateTime @default(now())
+
+  @@unique([period])
+  @@index([createdAt])
+}
+
+// Aurum Grid Models
+model AurumUpload {
+  id          String   @id @default(cuid())
+  name        String
+  type        AurumDataType
+  format      String
+  size        Int
+  status      AurumUploadStatus @default(UPLOADING)
+  coherence   Float
+  resonance   Float?
+  author      String
+  description String?
+  timestamp   DateTime @default(now())
+  nodeId      String?
+  metadata    String   // JSON metadata
+
+  @@index([type])
+  @@index([status])
+  @@index([author])
+  @@index([timestamp])
+  @@index([coherence])
+  @@index([nodeId])
+  @@index([type, status])
+  @@index([status, timestamp])
+  @@index([author, timestamp])
+}
+
+model HarmonicNode {
+  id            String   @id @default(cuid())
+  name          String
+  status        NodeStatus @default(ACTIVE)
+  location      String
+  coherence     Float
+  lastSync      DateTime?
+  supportedTypes String   // JSON array of supported data types
+  metadata      String?  // JSON metadata
+
+  @@index([status])
+  @@index([location])
+  @@index([coherence])
+  @@index([lastSync])
+  @@index([status, coherence])
+  @@index([location, status])
+}
+
+model AuiResponse {
+  id        String   @id @default(cuid())
+  uploadId  String
+  response  String   // AUI response content
+  timestamp DateTime @default(now())
+  metadata  String   // JSON metadata
+
+  @@index([uploadId])
+  @@index([timestamp])
+  @@index([uploadId, timestamp])
+}
+
+model ResonanceScore {
+  id          String   @id @default(cuid())
+  uploadId    String
+  score       Float
+  frequency   Float
+  amplitude   Float
+  phase       Float
+  timestamp   DateTime @default(now())
+  metadata    String?  // JSON metadata
+
+  @@index([uploadId])
+  @@index([score])
+  @@index([frequency])
+  @@index([timestamp])
+  @@index([uploadId, timestamp])
+  @@index([score, timestamp])
+}
+
+enum AurumDataType {
+  SYMBOLIC
+  QUANTUM
+  BIOMETRIC
+  STANDARD
+  ACTIVATION
+}
+
+enum AurumUploadStatus {
+  UPLOADING
+  VALIDATING
+  SYNCHRONIZING
+  COMPLETED
+  FAILED
+}
+
+enum NodeStatus {
+  ACTIVE
+  INACTIVE
+  SYNCHRONIZING
+  MAINTENANCE
+}
+
+enum ConstantFormat {
+  KEY_VALUE
+  JSON
+}
+
+enum ChannelType {
+  TELEGRAM
+  DISCORD
+  SLACK
+  EMAIL
+  TWITTER
+}
+
+enum AlertStatus {
+  RECEIVED
+  PROCESSING
+  DELIVERED
+  FAILED
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum JobPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
