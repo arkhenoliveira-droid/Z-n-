@@ -1,0 +1,3 @@
+# Ignore build artifacts, caches, and lock files
+/target
+Cargo.lock

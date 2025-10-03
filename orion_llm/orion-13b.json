@@ -1,0 +1,8 @@
+{
+  "name": "orion-13b",
+  "version": "v1.0",
+  "params": 13000000000,
+  "required": { "gpu_mem_mb": 8192 },
+  "formats": ["torchscript", "ggml_q4_0"],
+  "checksum": "sha256:0897133018e346ee49ecfbd419d1d0efd50e657bf9ff4b112cdf0d420fef8f1e"
+}
