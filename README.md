@@ -1,99 +1,99 @@
-# Gridwalker v2.1 Analysis Toolkit
+# Permanent File Storage AO Process (IPFS)
 
-[![CI](https://github.com/gridwalker/v2.1-analysis/actions/workflows/ci.yml/badge.svg)](https://github.com/gridwalker/v2.1-analysis/actions/workflows/ci.yml)
+This repository contains a simple yet powerful AO (Autonomous Organization) smart contract for managing metadata of files stored on the InterPlanetary File System (IPFS). It provides a decentralized and owner-controlled way to register, list, and delete references to off-chain data.
 
-This repository contains a collection of Python and R scripts for designing and analyzing experiments for the Gridwalker v2.1 protocol. It includes tools for generating stimulus waveforms, randomizing plate assignments, performing power calculations, and processing simulated instrument data.
+## Overview
 
-## Project Structure
+The core idea is to separate the heavy data (the files themselves) from the lightweight metadata (references, names, sizes). The files are uploaded to IPFS, which provides a unique Content Identifier (CID). This CID is then registered with the AO process, creating an on-chain, verifiable record of ownership and existence.
 
-The repository is organized as follows:
+This approach allows for efficient, scalable, and permanent data management on a decentralized backbone.
 
--   `.github/workflows/`: Contains the GitHub Actions CI workflow for automated testing.
--   `R/`: Contains R scripts for statistical analysis.
-    -   `calculate_power.R`: Performs a power analysis to determine the required sample size.
-    -   `DESCRIPTION`: Lists R package dependencies.
--   `src/`: Contains the core Python source code.
-    -   `generate_waveform.py`: Generates the complex, non-repeating waveform.
-    -   `assign_plates.py`: Creates a balanced Latin-square-based plate assignment.
-    -   `estimate_g2.py`: Estimates the g²(τ) temporal correlation from photon arrival data.
-    -   `match_rms.py`: Simulates matching a target magnetometer RMS value and generates a QC plot.
--   `results/`: The default output directory for generated files (e.g., `.csv`, `.json`, `.png`). This directory is created automatically.
--   `tests/`: Contains unit and integration tests.
-    -   `test_python_scripts.py`: `pytest` tests for the Python scripts.
-    -   `test_r_power_calc.R`: `testthat` tests for the R script.
--   `requirements.txt`: A list of Python package dependencies.
--   `README.md`: This file.
+## Features
 
-## Setup and Installation
+-   **Decentralized Metadata:** All file records are stored on the AO permaweb.
+-   **Owner-Controlled:** Only the wallet that registers a file can delete it.
+-   **IPFS Integration:** Leverages IPFS for content-addressed, permanent file storage.
+-   **Simple API:** A minimal set of actions (`Upload`, `List`, `Delete`) makes it easy to integrate with any application.
 
-### 1. Clone the Repository
+## API Reference
 
-```bash
-git clone <repository_url>
-cd <repository_directory>
-```
+You can interact with the deployed process by sending messages with specific `Action` tags.
 
-### 2. Python Dependencies
+### 1. Upload
 
-Ensure you have Python 3.7+ installed. Then, install the required packages using pip:
+Registers a new file by associating its IPFS CID with metadata. The sender of the message is automatically recorded as the owner.
 
-```bash
-pip install -r requirements.txt
-```
+-   **Action:** `Upload`
+-   **Payload (JSON):**
+    ```json
+    {
+      "cid": "Qm...",
+      "name": "my-research-paper.pdf",
+      "size": 1048576
+    }
+    ```
+-   **Fields:**
+    -   `cid` (string, required): The IPFS Content Identifier for the file.
+    -   `name` (string, required): A human-readable name for the file.
+    -   `size` (number, required): The file size in bytes.
 
-### 3. R Dependencies
+### 2. List
 
-Ensure you have R installed. Open an R session and install the required packages:
+Retrieves a list of all file records registered by the sender of the message.
 
-```R
-install.packages(c("pwr", "testthat"))
-```
+-   **Action:** `List`
+-   **Payload:** None required.
 
-## How to Run the Scripts
+### 3. Delete
 
-All scripts are designed to be run from the root of the repository. Outputs are saved to the `results/` directory by default.
+Removes a file record from the contract's state. This action can only be successfully executed by the original owner of the record.
 
-### Python Scripts
+-   **Action:** `Delete`
+-   **Payload (JSON):**
+    ```json
+    {
+      "cid": "Qm..."
+    }
+    ```
+-   **Fields:**
+    -   `cid` (string, required): The IPFS CID of the file record to delete.
 
-```bash
-# Generate the stimulus waveform and its metadata
-python src/generate_waveform.py
+## Deployment and Usage
 
-# Create the plate assignment schedule
-python src/assign_plates.py
+You can deploy and interact with this process using `aos`, the command-line tool for AO.
 
-# Run a simulation of g2(τ) estimation
-python src/estimate_g2.py
+### 1. Deployment
 
-# Simulate magnetometer RMS matching and create a QC plot
-python src/match_rms.py
-```
-
-### R Script
+To deploy the contract, run the following command from your terminal:
 
 ```bash
-# Calculate the required sample size via power analysis
-Rscript R/calculate_power.R
+aos permanent_storage.lua --wallet /path/to/your/arweave-keyfile.json
 ```
 
-## How to Run Tests
+Upon successful deployment, `aos` will return a **Process ID**. Save this ID for the next steps.
 
-The test suite verifies the core logic of all scripts.
+```
+Process: <YOUR_PROCESS_ID>
+```
 
-### Python Tests
+### 2. Interaction Examples
 
-Run the `pytest` suite from the root directory:
+Replace `<YOUR_PROCESS_ID>` with the ID you received during deployment.
+
+**To upload a file record:**
 
 ```bash
-pytest
+aos --process <YOUR_PROCESS_ID> --action Upload --data '{"cid": "QmXgZp...","name": "dataset.zip", "size": 5000000}'
 ```
 
-### R Tests
-
-Run the `testthat` suite using an R command:
+**To list your uploaded files:**
 
 ```bash
-Rscript -e "testthat::test_dir('tests/')"
+aos --process <YOUR_PROCESS_ID> --action List
 ```
 
-The full test suite is run automatically on every push to the repository via GitHub Actions.
+**To delete a file record:**
+
+```bash
+aos --process <YOUR_PROCESS_ID> --action Delete --data '{"cid": "QmXgZp..."}'
+```
