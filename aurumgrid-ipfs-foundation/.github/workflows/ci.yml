@@ -1,0 +1,54 @@
+name: CI – IPFS node sanity check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      ipfs:
+        image: ipfs/go-ipfs:latest
+        ports:
+          - 5001:5001
+        options: >-
+          --health-cmd "ipfs swarm peers"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build custom IPFS image
+        run: |
+          docker build -t local/ipfs-custom -f docker/Dockerfile.ipfs .
+
+      - name: Spin up stack
+        run: |
+          docker compose -f docker-compose.yml up -d
+
+      - name: Wait for API to be ready
+        run: |
+          for i in {1..12}; do
+            if curl -s http://localhost:5001/api/v0/version | grep -q '"Version"'; then
+              echo "IPFS API ready"
+              break
+            fi
+            echo "Waiting for IPFS API… ($i/12)"
+            sleep 5
+          done
+
+      - name: Run health‑check script
+        run: |
+          chmod +x scripts/healthcheck.sh
+          ./scripts/healthcheck.sh
+
+      - name: Tear‑down
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml down

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { Web3Identity } from '@/types/auth'
+import { Web3Identity } from '@/app/api/auth/route'
 import { securityConfig } from './env'
 
 export interface JWTPayload {

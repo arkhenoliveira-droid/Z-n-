@@ -1,0 +1,74 @@
+name: CI – Hybrid IPFS + Arweave demo
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  ARWEAVE_WALLET: ${{ secrets.ARWEAVE_WALLET }}
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      ipfs:
+        image: ipfs/go-ipfs:latest
+        ports:
+          - 5001:5001
+        options: >-
+          --health-cmd "ipfs swarm peers"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build custom IPFS image
+        run: |
+          docker build -t local/ipfs-demo -f docker/Dockerfile.ipfs .
+
+      - name: Spin up IPFS stack
+        run: |
+          docker compose -f docker-compose.yml up -d
+
+      - name: Wait for API
+        run: |
+          for i in {1..12}; do
+            if curl -s http://localhost:5001/api/v0/version | grep -q '"Version"'; then
+              echo "IPFS API ready"
+              break
+            fi
+            echo "Waiting… ($i/12)"
+            sleep 5
+          done
+
+      - name: Run health‑check script
+        run: |
+          chmod +x scripts/healthcheck.sh
+          ./scripts/healthcheck.sh
+
+      - name: Run Arweave archival script
+        env:
+          ARWEAVE_WALLET: ${{ secrets.ARWEAVE_WALLET }}
+        run: |
+          chmod +x scripts/archive-to-arweave.sh
+          ./scripts/archive-to-arweave.sh
+
+      - name: Tear‑down
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml down

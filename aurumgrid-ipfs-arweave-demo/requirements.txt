@@ -1,0 +1,2 @@
+arweave-python-client==1.2.2
+requests==2.32.3
