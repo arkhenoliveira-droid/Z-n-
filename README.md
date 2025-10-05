@@ -1,99 +1,104 @@
-# Permanent File Storage AO Process (IPFS)
+# AO-Powered Arweave Storage with CLI
 
-This repository contains a simple yet powerful AO (Autonomous Organization) smart contract for managing metadata of files stored on the InterPlanetary File System (IPFS). It provides a decentralized and owner-controlled way to register, list, and delete references to off-chain data.
+This project provides a complete, decentralized file storage solution built on Arweave and AO. It combines a simple AO smart contract for on-chain metadata management with a user-friendly command-line interface (CLI) to make permanent file storage easy and efficient.
 
-## Overview
+This implementation represents a "Level B" integration, where the complexities of the upload and registration process are abstracted into a single, simple command.
 
-The core idea is to separate the heavy data (the files themselves) from the lightweight metadata (references, names, sizes). The files are uploaded to IPFS, which provides a unique Content Identifier (CID). This CID is then registered with the AO process, creating an on-chain, verifiable record of ownership and existence.
+## Table of Contents
 
-This approach allows for efficient, scalable, and permanent data management on a decentralized backbone.
+1.  [**Overview**](#1-overview)
+2.  [**How It Works**](#2-how-it-works)
+    -   The AO Smart Contract (`arweave_storage.lua`)
+    -   The Command-Line Interface (`cli.js`)
+3.  [**Prerequisites**](#3-prerequisites)
+4.  [**Setup and Installation**](#4-setup-and-installation)
+5.  [**Deployment and Usage**](#5-deployment-and-usage)
+    -   Step 1: Deploy the AO Contract
+    -   Step 2: Use the CLI to Upload and Register Files
+6.  [**Further Reading**](#6-further-reading)
 
-## Features
+---
 
--   **Decentralized Metadata:** All file records are stored on the AO permaweb.
--   **Owner-Controlled:** Only the wallet that registers a file can delete it.
--   **IPFS Integration:** Leverages IPFS for content-addressed, permanent file storage.
--   **Simple API:** A minimal set of actions (`Upload`, `List`, `Delete`) makes it easy to integrate with any application.
+### 1. Overview
 
-## API Reference
+This project demonstrates a powerful pattern for decentralized applications: storing large data blobs off-chain while managing their metadata and ownership on-chain.
 
-You can interact with the deployed process by sending messages with specific `Action` tags.
+-   **Files** are uploaded directly to the **Arweave permaweb**, ensuring they are stored permanently and immutably.
+-   An **AO smart contract** (`arweave_storage.lua`) acts as a registry, storing a reference (the Arweave Transaction ID) and metadata for each file.
+-   A **Node.js CLI** (`cli.js`) provides a seamless user experience, handling the two-step process of uploading to Arweave and registering with AO in a single command.
 
-### 1. Upload
+### 2. How It Works
 
-Registers a new file by associating its IPFS CID with metadata. The sender of the message is automatically recorded as the owner.
+#### The AO Smart Contract (`arweave_storage.lua`)
 
--   **Action:** `Upload`
--   **Payload (JSON):**
-    ```json
-    {
-      "cid": "Qm...",
-      "name": "my-research-paper.pdf",
-      "size": 1048576
-    }
+This Lua script is the on-chain backbone of the application. It is a simple yet robust contract that exposes three main actions:
+
+-   `Upload`: Allows a user to register an Arweave Transaction ID (TXID), associating it with a file name, size, and their wallet address (as the owner).
+-   `List`: Allows a user to retrieve a list of all the file records they own.
+-   `Delete`: Allows a user to remove a file record. This action is protected; only the original owner can delete their records.
+
+#### The Command-Line Interface (`cli.js`)
+
+The CLI is the "Level B" integration that simplifies the user workflow. Instead of performing multiple manual steps, the user can execute a single command. The script handles:
+
+1.  Reading the user's local file.
+2.  Connecting to their Arweave wallet.
+3.  Uploading the file to the Arweave network.
+4.  Capturing the resulting Transaction ID (TXID).
+5.  Executing an `aos` command to call the `Upload` action on the AO smart contract, registering the file.
+
+### 3. Prerequisites
+
+-   **Node.js and npm:** Required to run the CLI tool and install dependencies.
+-   **An Arweave Wallet:** A JSON keyfile with a funded AR balance. See the [Arweave Quick-Start Guide](./arweave-quick-start.md) to create one.
+-   **`aos` CLI:** The command-line tool for AO. Ensure it is installed and accessible in your system's PATH.
+
+### 4. Setup and Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd <repository-directory>
     ```
--   **Fields:**
-    -   `cid` (string, required): The IPFS Content Identifier for the file.
-    -   `name` (string, required): A human-readable name for the file.
-    -   `size` (number, required): The file size in bytes.
 
-### 2. List
-
-Retrieves a list of all file records registered by the sender of the message.
-
--   **Action:** `List`
--   **Payload:** None required.
-
-### 3. Delete
-
-Removes a file record from the contract's state. This action can only be successfully executed by the original owner of the record.
-
--   **Action:** `Delete`
--   **Payload (JSON):**
-    ```json
-    {
-      "cid": "Qm..."
-    }
+2.  **Install Node.js dependencies:**
+    ```bash
+    npm install
     ```
--   **Fields:**
-    -   `cid` (string, required): The IPFS CID of the file record to delete.
 
-## Deployment and Usage
+### 5. Deployment and Usage
 
-You can deploy and interact with this process using `aos`, the command-line tool for AO.
+#### Step 1: Deploy the AO Contract
 
-### 1. Deployment
-
-To deploy the contract, run the following command from your terminal:
+First, you need to deploy the `arweave_storage.lua` script to the AO network.
 
 ```bash
-aos permanent_storage.lua --wallet /path/to/your/arweave-keyfile.json
+aos arweave_storage.lua --wallet /path/to/your/arweave-keyfile.json
 ```
 
-Upon successful deployment, `aos` will return a **Process ID**. Save this ID for the next steps.
+This command will return a **Process ID**. Copy this ID, as you will need it to interact with your contract.
 
-```
-Process: <YOUR_PROCESS_ID>
-```
+`Process: <YOUR_PROCESS_ID>`
 
-### 2. Interaction Examples
+#### Step 2: Use the CLI to Upload and Register Files
 
-Replace `<YOUR_PROCESS_ID>` with the ID you received during deployment.
+Now you can use the `cli.js` tool to upload a file. The command requires three arguments: the path to your local file, your newly created AO Process ID, and the path to your Arweave wallet file.
 
-**To upload a file record:**
+**Command Syntax:**
 
 ```bash
-aos --process <YOUR_PROCESS_ID> --action Upload --data '{"cid": "QmXgZp...","name": "dataset.zip", "size": 5000000}'
+node cli.js <path-to-file> <your-ao-process-id> <path-to-your-wallet.json>
 ```
 
-**To list your uploaded files:**
+**Example:**
 
 ```bash
-aos --process <YOUR_PROCESS_ID> --action List
+node cli.js ./my-research.pdf <YOUR_PROCESS_ID> ~/.secrets/arweave-key.json
 ```
 
-**To delete a file record:**
+The script will provide real-time feedback, showing the upload progress and the final confirmation from the AO contract.
 
-```bash
-aos --process <YOUR_PROCESS_ID> --action Delete --data '{"cid": "QmXgZp..."}'
-```
+### 6. Further Reading
+
+-   [**Arweave Quick-Start Guide**](./arweave-quick-start.md): For more details on Arweave itself.
+-   [**AO Cookbook**](https://ao-cookbook.g8way.io/): For more advanced AO development concepts.
