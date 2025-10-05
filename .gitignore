@@ -1,25 +1,16 @@
-# Python
+# Python cache
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
 
-# R
-.Rproj.user/
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# R project files
+.Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 
-# Results and outputs
-results/
-
-# IDE/Editor specific
-.vscode/
-.idea/
-
-# OS specific
-.DS_Store
-Thumbs.db
+# Results - keep this commented out unless user wants to ignore results
+# results/
