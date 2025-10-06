@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 export async function GET() {
   try {
     // Using a public provider, but in a real application, you'd use a dedicated one like Infura or Alchemy.
-    const provider = new ethers.JsonRpcProvider("https://cloudflare-eth.com");
+    const provider = new ethers.JsonRpcProvider("https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID");
 
     const [blockNumber, feeData] = await Promise.all([
       provider.getBlockNumber(),
