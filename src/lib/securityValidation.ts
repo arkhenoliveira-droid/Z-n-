@@ -142,6 +142,11 @@ export class SecurityValidator {
       if (type === 'object') {
         const sanitized: any = {}
         for (const [key, val] of Object.entries(value)) {
+          // Prevent prototype pollution
+          if (key === '__proto__') {
+            errors.push('Prototype pollution attempt detected')
+            continue
+          }
           // Skip prototype properties
           if (!Object.prototype.hasOwnProperty.call(value, key)) {
             continue
