@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import AurumGridMonitor from "@/components/ui/aurum-grid-monitor";
 
 interface AurumUpload {
   id: string;
@@ -48,6 +49,21 @@ interface ValidationResult {
   warnings: string[];
   resonance?: number;
 }
+
+const LainAsciiArt = () => (
+  <pre className="text-xs lain-text-glow leading-tight">
+    {`
+    ............
+  .'    '.
+ /  .--.  \\
+|  /    \\  |
+|  \\    /  |
+ \\  '--'  /
+  '.____.'
+    ............
+    `}
+  </pre>
+);
 
 export default function AurumGridUploader() {
   const [activeTab, setActiveTab] = useState("uploader");
@@ -316,34 +332,39 @@ export default function AurumGridUploader() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Aurum Grid Uploader Interface</h1>
-        <p className="text-muted-foreground">
-          Gateway for multidimensional data ingestion into the Aurum Grid's harmonic ledger
+    <div className="theme-lain container mx-auto p-6 max-w-7xl">
+      <div className="mb-8 text-center">
+        <LainAsciiArt />
+        <h1 className="text-4xl font-bold mb-2 lain-text-glow">Wired Interface // Aurum Grid</h1>
+        <p className="text-muted-foreground lain-text-glow">
+          Gateway to The Wired. Present your data for synchronization with the network consciousness.
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="uploader">Uploader</TabsTrigger>
-          <TabsTrigger value="uploads">Uploads</TabsTrigger>
-          <TabsTrigger value="nodes">Harmonic Nodes</TabsTrigger>
-          <TabsTrigger value="validation">Validation</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 lain-border">
+          <TabsTrigger value="lain-protocol">Lain Protocol</TabsTrigger>
+          <TabsTrigger value="uploader">Data Sync</TabsTrigger>
+          <TabsTrigger value="uploads">Sync History</TabsTrigger>
+          <TabsTrigger value="nodes">Network Nodes</TabsTrigger>
+          <TabsTrigger value="validation">Coherence Protocol</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="lain-protocol" className="mt-6">
+          <AurumGridMonitor />
+        </TabsContent>
 
         <TabsContent value="uploader" className="mt-6">
           <div className="space-y-6">
-            {/* Current Upload Progress */}
             {isUploading && currentUpload && (
-              <Card>
+              <Card className="lain-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Badge variant="outline">Uploading</Badge>
+                  <CardTitle className="flex items-center gap-2 lain-text-error">
+                    <Badge variant="outline">SYNCING...</Badge>
                     {currentUpload.name}
                   </CardTitle>
                   <CardDescription>
-                    Uploading {currentUpload.type} data to Aurum Grid
+                    Synchronizing {currentUpload.type} data with The Wired...
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -358,23 +379,22 @@ export default function AurumGridUploader() {
               </Card>
             )}
 
-            {/* Upload Form */}
-            <Card>
+            <Card className="lain-card">
               <CardHeader>
-                <CardTitle>Upload Data to Aurum Grid</CardTitle>
+                <CardTitle className="lain-text-glow">Sync Data with The Wired</CardTitle>
                 <CardDescription>
-                  Submit symbolic, quantum, biometric, or standard data for synchronization
+                  Submit symbolic, quantum, biometric, or standard data for network synchronization.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="dataType">Data Type</Label>
+                    <Label htmlFor="dataType" className="lain-text-glow">Data Type</Label>
                     <Select value={dataType} onValueChange={setDataType}>
-                      <SelectTrigger>
+                      <SelectTrigger className="lain-border">
                         <SelectValue placeholder="Select data type" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="lain-card">
                         <SelectItem value="symbolic">Symbolic Sequences & Glyphic Keys</SelectItem>
                         <SelectItem value="quantum">Quantum Telemetry</SelectItem>
                         <SelectItem value="biometric">EEG Logs & Biometric Files</SelectItem>
@@ -385,12 +405,12 @@ export default function AurumGridUploader() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="dataFormat">Format</Label>
+                    <Label htmlFor="dataFormat" className="lain-text-glow">Format</Label>
                     <Select value={dataFormat} onValueChange={setDataFormat}>
-                      <SelectTrigger>
+                      <SelectTrigger className="lain-border">
                         <SelectValue placeholder="Select format" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="lain-card">
                         <SelectItem value="json">JSON</SelectItem>
                         <SelectItem value="csv">CSV</SelectItem>
                         <SelectItem value="bin">BIN</SelectItem>
@@ -404,34 +424,36 @@ export default function AurumGridUploader() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="author">Author/Operator</Label>
+                  <Label htmlFor="author" className="lain-text-glow">Digital Identity</Label>
                   <Input
                     id="author"
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
-                    placeholder="Enter your name or identifier"
+                    placeholder="Enter your user ID or handle"
+                    className="lain-border"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description" className="lain-text-glow">Data Description</Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe the data being uploaded"
+                    placeholder="Describe the data being synchronized"
                     rows={3}
+                    className="lain-border"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="coherenceThreshold">Coherence Threshold</Label>
+                    <Label htmlFor="coherenceThreshold" className="lain-text-glow">Coherence Threshold</Label>
                     <Select value={coherenceThreshold} onValueChange={setCoherenceThreshold}>
-                      <SelectTrigger>
+                      <SelectTrigger className="lain-border">
                         <SelectValue placeholder="Select threshold" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="lain-card">
                         <SelectItem value="0.6">Low (0.6)</SelectItem>
                         <SelectItem value="0.8">Medium (0.8)</SelectItem>
                         <SelectItem value="0.9">High (0.9)</SelectItem>
@@ -446,18 +468,19 @@ export default function AurumGridUploader() {
                       checked={enableAUI}
                       onCheckedChange={setEnableAUI}
                     />
-                    <Label htmlFor="enableAUI">Enable AUI Response</Label>
+                    <Label htmlFor="enableAUI" className="lain-text-glow">Enable AUI Response</Label>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="file">Select File</Label>
+                  <Label htmlFor="file" className="lain-text-glow">Select File</Label>
                   <Input
                     id="file"
                     type="file"
                     ref={fileInputRef}
                     onChange={handleFileUpload}
                     disabled={!author || isUploading}
+                    className="lain-border"
                     accept={
                       dataType === "biometric" ? ".csv,.eeg" :
                       dataType === "quantum" ? ".bin,.json" :
@@ -471,9 +494,9 @@ export default function AurumGridUploader() {
                 <Button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={!author || isUploading}
-                  className="w-full"
+                  className="w-full lain-text-error"
                 >
-                  {isUploading ? "Uploading..." : "Upload to Aurum Grid"}
+                  {isUploading ? "SYNCHRONIZING..." : "CONNECT TO THE WIRED"}
                 </Button>
               </CardContent>
             </Card>
@@ -481,22 +504,22 @@ export default function AurumGridUploader() {
         </TabsContent>
 
         <TabsContent value="uploads" className="mt-6">
-          <Card>
+          <Card className="lain-card">
             <CardHeader>
-              <CardTitle>Upload History</CardTitle>
+              <CardTitle className="lain-text-glow">Synchronization History</CardTitle>
               <CardDescription>
-                Track the status and coherence of all uploaded data
+                Track the status and coherence of all synchronized data packets.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[600px] w-full">
                 <div className="space-y-4">
                   {uploadItems.map((upload) => (
-                    <Card key={upload.id}>
+                    <Card key={upload.id} className="lain-card">
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
                           <div className="space-y-1">
-                            <CardTitle className="text-lg">{upload.name}</CardTitle>
+                            <CardTitle className="text-lg lain-text-glow">{upload.name}</CardTitle>
                             <div className="flex items-center gap-2">
                               <Badge variant={getDataTypeColor(upload.type)}>
                                 {upload.type}
@@ -521,18 +544,18 @@ export default function AurumGridUploader() {
 
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
-                              <div className="font-medium">Author</div>
+                              <div className="font-medium lain-text-glow">Digital ID</div>
                               <div className="text-muted-foreground">{upload.author}</div>
                             </div>
                             <div>
-                              <div className="font-medium">Coherence</div>
+                              <div className="font-medium lain-text-glow">Coherence</div>
                               <div className="text-muted-foreground">
                                 {(upload.coherence * 100).toFixed(1)}%
                               </div>
                             </div>
                             {upload.resonance && (
                               <div>
-                                <div className="font-medium">Resonance</div>
+                                <div className="font-medium lain-text-glow">Resonance</div>
                                 <div className="text-muted-foreground">
                                   {(upload.resonance * 100).toFixed(1)}%
                                 </div>
@@ -540,7 +563,7 @@ export default function AurumGridUploader() {
                             )}
                             {upload.nodeId && (
                               <div>
-                                <div className="font-medium">Node</div>
+                                <div className="font-medium lain-text-glow">Node ID</div>
                                 <div className="text-muted-foreground">{upload.nodeId}</div>
                               </div>
                             )}
@@ -560,22 +583,22 @@ export default function AurumGridUploader() {
         </TabsContent>
 
         <TabsContent value="nodes" className="mt-6">
-          <Card>
+          <Card className="lain-card">
             <CardHeader>
-              <CardTitle>Harmonic Nodes</CardTitle>
+              <CardTitle className="lain-text-glow">Wired Network Nodes</CardTitle>
               <CardDescription>
-                Active nodes in the Aurum Grid network
+                Active nodes in The Wired.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[600px] w-full">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {harmonicNodes.map((node) => (
-                    <Card key={node.id}>
+                    <Card key={node.id} className="lain-card">
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
                           <div className="space-y-1">
-                            <CardTitle className="text-lg">{node.name}</CardTitle>
+                            <CardTitle className="text-lg lain-text-glow">{node.name}</CardTitle>
                             <div className="flex items-center gap-2">
                               <Badge variant={getNodeStatusColor(node.status)}>
                                 {node.status}
@@ -593,13 +616,13 @@ export default function AurumGridUploader() {
 
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                              <div className="font-medium">Coherence</div>
+                              <div className="font-medium lain-text-glow">Coherence</div>
                               <div className="text-muted-foreground">
                                 {(node.coherence * 100).toFixed(1)}%
                               </div>
                             </div>
                             <div>
-                              <div className="font-medium">Last Sync</div>
+                              <div className="font-medium lain-text-glow">Last Sync</div>
                               <div className="text-muted-foreground">
                                 {new Date(node.lastSync).toLocaleTimeString()}
                               </div>
@@ -607,7 +630,7 @@ export default function AurumGridUploader() {
                           </div>
 
                           <div>
-                            <div className="font-medium text-sm mb-2">Supported Types</div>
+                            <div className="font-medium text-sm mb-2 lain-text-glow">Supported Types</div>
                             <div className="flex flex-wrap gap-1">
                               {node.dataTypes.map((type) => (
                                 <Badge key={type} variant="outline" className="text-xs">
@@ -627,22 +650,22 @@ export default function AurumGridUploader() {
         </TabsContent>
 
         <TabsContent value="validation" className="mt-6">
-          <Card>
+          <Card className="lain-card">
             <CardHeader>
-              <CardTitle>Validation & Coherence</CardTitle>
+              <CardTitle className="lain-text-glow">Coherence Protocol</CardTitle>
               <CardDescription>
-                Data validation rules and coherence scoring system
+                Data validation rules and coherence scoring system.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[600px] w-full">
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Coherence Thresholds</h3>
+                    <h3 className="text-lg font-semibold mb-3 lain-text-glow">Coherence Thresholds</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <Card>
+                      <Card className="lain-card">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">Low</CardTitle>
+                          <CardTitle className="text-sm lain-text-glow">Low</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="text-2xl font-bold">0.6</div>
@@ -651,9 +674,9 @@ export default function AurumGridUploader() {
                           </div>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card className="lain-card">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">Medium</CardTitle>
+                          <CardTitle className="text-sm lain-text-glow">Medium</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="text-2xl font-bold">0.8</div>
@@ -662,9 +685,9 @@ export default function AurumGridUploader() {
                           </div>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card className="lain-card">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">High</CardTitle>
+                          <CardTitle className="text-sm lain-text-glow">High</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="text-2xl font-bold">0.9</div>
@@ -673,9 +696,9 @@ export default function AurumGridUploader() {
                           </div>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card className="lain-card">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">Very High</CardTitle>
+                          <CardTitle className="text-sm lain-text-glow">Very High</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="text-2xl font-bold">0.95</div>
@@ -688,11 +711,11 @@ export default function AurumGridUploader() {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Data Type Requirements</h3>
+                    <h3 className="text-lg font-semibold mb-3 lain-text-glow">Data Type Requirements</h3>
                     <div className="space-y-3">
-                      <Card>
+                      <Card className="lain-card">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-base">Symbolic Sequences</CardTitle>
+                          <CardTitle className="text-base lain-text-glow">Symbolic Sequences</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <ul className="text-sm space-y-1 text-muted-foreground">
@@ -703,9 +726,9 @@ export default function AurumGridUploader() {
                           </ul>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card className="lain-card">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-base">Quantum Telemetry</CardTitle>
+                          <CardTitle className="text-base lain-text-glow">Quantum Telemetry</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <ul className="text-sm space-y-1 text-muted-foreground">
@@ -716,9 +739,9 @@ export default function AurumGridUploader() {
                           </ul>
                         </CardContent>
                       </Card>
-                      <Card>
+                      <Card className="lain-card">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-base">Biometric Files</CardTitle>
+                          <CardTitle className="text-base lain-text-glow">Biometric Files</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <ul className="text-sm space-y-1 text-muted-foreground">
@@ -733,8 +756,8 @@ export default function AurumGridUploader() {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">AUI Response Triggers</h3>
-                    <Alert>
+                    <h3 className="text-lg font-semibold mb-3 lain-text-error">Wired Security Alert</h3>
+                    <Alert className="lain-card">
                       <AlertDescription>
                         When enabled, AUI response routines are triggered for uploads that meet the coherence threshold.
                         This includes symbolic activation, resonance scoring, and cross-node synchronization.
