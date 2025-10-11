@@ -1,0 +1,20 @@
+{
+  "API": {
+    "HTTPHeaders": {
+      "Access-Control-Allow-Origin": ["*"],
+      "Access-Control-Allow-Methods": ["PUT", "POST", "GET"]
+    }
+  },
+  "Addresses": {
+    "API": "/ip4/0.0.0.0/tcp/5001",
+    "Gateway": "/ip4/0.0.0.0/tcp/8080"
+  },
+  "Bootstrap": [
+    "/ip4/147.75.83.83/tcp/4001/ipfs/QmYwM9Gk8JgM9iF7x2vR4r4kG4ZQeV5M8N9tT3KzQp2Z6X"
+  ],
+  "Discovery": {
+    "MDNS": {
+      "Enabled": false
+    }
+  }
+}

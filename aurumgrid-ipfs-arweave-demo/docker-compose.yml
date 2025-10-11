@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  ipfs:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ipfs
+    container_name: ipfs-arweave-demo
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ipfs-data:/data/ipfs
+    env_file:
+      - .env
+
+volumes:
+  ipfs-data:
